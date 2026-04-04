@@ -4,6 +4,7 @@ from io import StringIO
 from pathlib import Path
 import calendar
 import json
+import time
 import re
 
 import pandas as pd
@@ -24,9 +25,19 @@ RELEASE_DATE = pd.Timestamp("2016-02-26")
 
 
 def request_page(url: str) -> str:
-    response = requests.get(url, headers=HEADERS, timeout=30)
-    response.raise_for_status()
-    return response.text
+    last_error = None
+
+    for attempt in range(3):
+        try:
+            response = requests.get(url, headers=HEADERS, timeout=30)
+            response.raise_for_status()
+            return response.text
+        except requests.RequestException as error:
+            last_error = error
+            if attempt < 2:
+                time.sleep(2)
+
+    raise last_error
 
 
 def unwrap_astro_value(value):
@@ -211,18 +222,34 @@ def build_daily_from_monthly(monthly_df: pd.DataFrame) -> pd.DataFrame:
 
 def build_full_daily_dataset() -> pd.DataFrame:
     events_df = fetch_steam_price_history_events()
-    monthly_df = fetch_steambase_monthly_data()
-
     exact_daily_df = build_daily_from_events(events_df)
+    frames = [exact_daily_df]
 
-    gap_start = exact_daily_df["date"].max() + pd.Timedelta(days=1)
-    gap_end = monthly_df["month"].min() - pd.Timedelta(days=1)
+    try:
+        monthly_df = fetch_steambase_monthly_data()
+    except requests.RequestException as error:
+        print(f"Warning: could not load Steambase monthly data: {error}")
+        monthly_df = pd.DataFrame()
+
     gap_price = exact_daily_df.iloc[-1]["price_usd"]
-    gap_df = build_gap_period(gap_start, gap_end, gap_price)
 
-    monthly_daily_df = build_daily_from_monthly(monthly_df)
+    if monthly_df.empty:
+        fallback_gap_df = build_gap_period(
+            exact_daily_df["date"].max() + pd.Timedelta(days=1),
+            pd.Timestamp(date.today()),
+            gap_price,
+        )
+        frames.append(fallback_gap_df)
+    else:
+        gap_df = build_gap_period(
+            exact_daily_df["date"].max() + pd.Timedelta(days=1),
+            monthly_df["month"].min() - pd.Timedelta(days=1),
+            gap_price,
+        )
+        monthly_daily_df = build_daily_from_monthly(monthly_df)
+        frames.extend([gap_df, monthly_daily_df])
 
-    dataframe = pd.concat([exact_daily_df, gap_df, monthly_daily_df], ignore_index=True)
+    dataframe = pd.concat(frames, ignore_index=True)
     dataframe = dataframe.sort_values("date").drop_duplicates(subset=["date"], keep="first").reset_index(drop=True)
     dataframe["date"] = pd.to_datetime(dataframe["date"]).dt.strftime("%Y-%m-%d")
     return dataframe
