@@ -1,5 +1,5 @@
 import joblib
-from general_methods import load_data, create_features, evaluate
+from model_preparation import load_data, create_features, evaluate
 
 
 COLUMNS = [

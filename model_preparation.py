@@ -10,7 +10,6 @@ def load_data(folder_path):
     df = pd.concat(df_list, ignore_index=True)
     return df
 
-
 # =====================
 # Feature Engineering
 # =====================
@@ -51,3 +50,9 @@ def evaluate(model, df, features):
     rmse = np.sqrt(mean_squared_error(y, preds))
 
     print(f"RMSE: {rmse:.4f}")
+
+def main():
+    print("Done!")
+    
+if __name__ == "__main__":
+    main()
