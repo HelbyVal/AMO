@@ -1,19 +1,9 @@
-import os
-import glob
-import pandas as pd
 import numpy as np
 
 from lightgbm import LGBMRegressor
 from sklearn.metrics import mean_squared_error
 import joblib
-from general_methods import load_data, create_features
-
-
-# =====================
-# Загрузка данных
-# =====================
-
-
+from model_preparation import load_data, create_features, evaluate
 
 # =====================
 # Обучение модели
@@ -52,20 +42,6 @@ def train_model(train_df):
     model.fit(X, y)
 
     return model, features
-
-
-# =====================
-# Валидация
-# =====================
-def evaluate(model, df, features):
-    X = df[features]
-    y = df['price_usd']
-
-    preds = model.predict(X)
-
-    rmse = np.sqrt(mean_squared_error(y, preds))
-    print(f"RMSE: {rmse:.4f}")
-
 
 # =====================
 # Основной пайплайн
