@@ -1,0 +1,26 @@
+[project]
+name = "amo"
+version = "0.1.0"
+description = "АМО Лабораторная работа №5"
+authors = [
+    { name = "HelbyVal" },
+    { name = "tixomirof" },
+]
+readme = "README.md"
+requires-python = ">=3.11,<4.0"
+dependencies = [
+    "joblib",
+    "lightgbm",
+    "lxml",
+    "numpy",
+    "pandas",
+    "requests",
+    "scikit-learn",
+]
+
+[tool.poetry]
+package-mode = false
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"
