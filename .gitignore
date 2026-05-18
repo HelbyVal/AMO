@@ -3,3 +3,4 @@ test/
 .venv/
 __pycache__/
 *.py[cod]
+docker/data/

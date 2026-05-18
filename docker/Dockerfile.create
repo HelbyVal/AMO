@@ -1,0 +1,10 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements_create.txt .
+RUN pip install --no-cache-dir -r requirements_create.txt
+
+COPY data_creation.py .
+
+CMD ["python", "/app/data_creation.py"]
