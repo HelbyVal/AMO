@@ -1,3 +1,6 @@
+name: amo
+version: "3.8"
+
 services:
   create:
     build:
