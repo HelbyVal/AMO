@@ -1,14 +1,34 @@
 import numpy as np
+import os
 
 from lightgbm import LGBMRegressor
 from sklearn.metrics import mean_squared_error
 import joblib
 from model_preparation import load_data, create_features, evaluate
 
+
+DEFAULT_MAX_ITER = 500
+
+
+def read_max_iter():
+    raw_value = os.getenv("MAX_ITER")
+    if raw_value is None or raw_value.strip() == "":
+        return DEFAULT_MAX_ITER
+
+    try:
+        max_iter = int(raw_value)
+    except ValueError as exc:
+        raise ValueError("MAX_ITER must be an integer.") from exc
+
+    if max_iter <= 0:
+        raise ValueError("MAX_ITER must be greater than 0.")
+
+    return max_iter
+
 # =====================
 # Обучение модели
 # =====================
-def train_model(train_df):
+def train_model(train_df, max_iter):
     target = 'price_usd'
 
     features = [
@@ -34,7 +54,7 @@ def train_model(train_df):
     y = train_df[target]
 
     model = LGBMRegressor(
-        n_estimators=500,
+        n_estimators=max_iter,
         learning_rate=0.05,
         max_depth=6
     )
@@ -59,7 +79,9 @@ def main():
     print(train_df.head())
 
     print("Training model...")
-    model, features = train_model(train_df)
+    max_iter = read_max_iter()
+    print(f"MAX_ITER: {max_iter}")
+    model, features = train_model(train_df, max_iter)
 
     print("Evaluating on train:")
     evaluate(model, train_df, features)

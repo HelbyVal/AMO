@@ -16,6 +16,8 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.train
     working_dir: /data
+    env_file:
+      - ../.env
     volumes:
       - ../data:/data
     depends_on:
