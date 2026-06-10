@@ -1,0 +1,33 @@
+services:
+  create:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.create
+    working_dir: /data
+    volumes:
+      - ../data:/data
+    restart: "no"
+
+  train:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.train
+    working_dir: /data
+    volumes:
+      - ../data:/data
+    depends_on:
+      create:
+        condition: service_completed_successfully
+    restart: "no"
+
+  predict:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.predict
+    working_dir: /data
+    volumes:
+      - ../data:/data
+    depends_on:
+      train:
+        condition: service_completed_successfully
+    restart: "no"
